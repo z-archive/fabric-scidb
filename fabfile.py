@@ -120,7 +120,23 @@ def build():
             local('cd %s && CC="ccache gcc" CXX="ccache g++" cmake . -DCMAKE_BUILD_TYPE=Debug' % path)
             local('cd %s && time make -j3' % path)
             sudo('cd %s && make install' % path)
-        
+
+def ps():
+    run('ps ax | grep scidb | grep mnt')
+
+@parallel
+def kill_scidb():
+    with settings(warn_only=True):
+        run("ps ax | grep scidb | grep mnt | awk '{print $1}' | xargs kill")
+    with settings(warn_only=True):
+        run("sleep 5")
+    with settings(warn_only=True):
+        run("ps ax | grep scidb | grep mnt | awk '{print $1}' | xargs kill -9")
+
+@hosts('localhost')
+def kill():
+    execute(kill_scidb)
+    execute(ps)
 
 def ls():
     host = env.host
