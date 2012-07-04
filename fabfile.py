@@ -54,7 +54,8 @@ def restart():
 
 @hosts('localhost')
 def query(query):
-    bad_local('time iquery -anq "%s"' % query)
+    with settings(warn_only=True):
+        bad_local('time iquery -anq "%s"' % query)
 
 @parallel
 def capture():
