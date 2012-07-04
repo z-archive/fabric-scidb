@@ -3,7 +3,7 @@
 import os
 import os.path
 import scidb
-from fabric.api import env, run as bad_run, local as bad_local, execute, get
+from fabric.api import env, run as bad_run, local as bad_local, execute, get, sudo
 from fabric.decorators import runs_once, hosts, parallel
 from fabric.context_managers import settings, hide, cd
 from scidb import get_path
@@ -81,7 +81,10 @@ def capture():
 
 @hosts('localhost')
 def test(q):
-    execute(restart)
+    execute(stop)
+    execute(clean)
+    execute(rebuild)
+    execute(start)
     execute(query, q)
     execute(capture)
     execute(backup)
@@ -101,6 +104,17 @@ def backup():
 @hosts('localhost')
 def backup_clean():
     local('rm -rf backup-*')
+
+@hosts('localhost')
+def rebuild():
+    path = '/data/src/trunk.oleg'
+    with settings(warn_only=True):
+            local('cd %s && make clean' % path)
+            local('cd %s && rm -f CMakeCache.txt' % path)            
+            local('cd %s && CC="ccache gcc" CXX="ccache g++" cmake . -DCMAKE_BUILD_TYPE=Debug' % path)
+            local('cd %s && make -j5' % path)
+            sudo('cd %s && make install' % path)
+        
 
 def ls():
     host = env.host
