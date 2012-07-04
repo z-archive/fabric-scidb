@@ -54,7 +54,7 @@ def restart():
 
 @hosts('localhost')
 def query(query):
-    local('time iquery -aq "%s"' % query)
+    bad_local('time iquery -anq "%s"' % query)
 
 @parallel
 def capture():
@@ -78,9 +78,9 @@ def capture():
     map(backup, run('find %s -name "*.log"' % scidb.get_path(host))) 
     map(backup_with_link, run('find %s -name "core.*"' % scidb.get_path(host)))
 
-
 @hosts('localhost')
-def test(q):
+def test():
+    q = "store(repart(hg19_lts, <base:char>[position=0:*,100000,0]), hg19_stl)"
     execute(stop)
     execute(clean)
     execute(build)
