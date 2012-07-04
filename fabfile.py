@@ -106,20 +106,14 @@ def backup_clean():
     local('rm -rf backup-*')
 
 @hosts('localhost')
-def rebuild():
-    path = '/data/src/trunk.oleg'
-    with settings(warn_only=True):
-            local('cd %s && make clean' % path)
-            local('cd %s && rm -f CMakeCache.txt' % path)
-    execute(build)
+def build():
+    for path in ['/data/src/trunk.oleg', '/data/src/p4.oleg']:
+        local('cd %s && ./build' % path)
 
 @hosts('localhost')
-def build():
-    path = '/data/src/trunk.oleg'
-    with settings(warn_only=True):
-            local('cd %s && CC="ccache gcc" CXX="ccache g++" cmake . -DCMAKE_BUILD_TYPE=Debug' % path)
-            local('cd %s && time make -j3' % path)
-            sudo('cd %s && make install' % path)
+def rebuild():
+    for path in ['/data/src/trunk.oleg', '/data/src/p4.oleg']:
+        local('cd %s && ./rebuild' % path)
 
 def ps():
     run('ps ax | grep scidb | grep mnt')
