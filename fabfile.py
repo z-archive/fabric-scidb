@@ -83,7 +83,7 @@ def capture():
 def test(q):
     execute(stop)
     execute(clean)
-    execute(rebuild)
+    execute(build)
     execute(start)
     execute(query, q)
     execute(capture)
@@ -110,7 +110,13 @@ def rebuild():
     path = '/data/src/trunk.oleg'
     with settings(warn_only=True):
             local('cd %s && make clean' % path)
-            local('cd %s && rm -f CMakeCache.txt' % path)            
+            local('cd %s && rm -f CMakeCache.txt' % path)
+    execute(build)
+
+@hosts('localhost')
+def build():
+    path = '/data/src/trunk.oleg'
+    with settings(warn_only=True):
             local('cd %s && CC="ccache gcc" CXX="ccache g++" cmake . -DCMAKE_BUILD_TYPE=Debug' % path)
             local('cd %s && time make -j3' % path)
             sudo('cd %s && make install' % path)
