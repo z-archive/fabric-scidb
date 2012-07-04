@@ -30,8 +30,7 @@ def clean_remote():
 
 @hosts('localhost')
 def clean_local():
-    local('find . -name "*.log" -exec rm {} +')
-    local('find . -name "core.*" -exec rm {} +')
+    local('rm -rf host-*')
 
 @hosts('localhost')
 def clean():
@@ -60,13 +59,25 @@ def query(query):
 @parallel
 def capture():
     host = env.host
-    path = scidb.get_path(host)
-    id = scidb.get_id(host)
-    log_list = run('find %s -name "*.log"' % path)
-    core_list = run('find %s -name "core.*"' % path)
-    for remote_path in log_list + core_list:
-        print "'%s'" % remote_path
-        get(remote_path, local_path='host-%s-%s' % (id, basename(remote_path)))
+    path = 'host-%s' % scidb.get_id(host)
+    local('mkdir -p %s' % path)
+
+    def local_path(remote_path):
+        return os.path.join(path, basename(remote_path))
+    def backup(remote_path):
+        path = local_path(remote_path)
+        local('rm -rf %s' % path)
+        get(remote_path, local_path=path)
+    def backup_with_link(remote_path):
+        backup(remote_path)
+        local_host_path = local_path(remote_path)
+        link_path = '%s-%s' % (path, basename(remote_path))
+        local('rm -rf %s' % link_path)
+        local('ln %s %s' % (local_host_path, link_path))
+
+    map(backup, run('find %s -name "*.log"' % scidb.get_path(host))) 
+    map(backup_with_link, run('find %s -name "core.*"' % scidb.get_path(host)))
+
 
 @hosts('localhost')
 def test(q):
@@ -77,17 +88,19 @@ def test(q):
 
 @hosts('localhost')
 def backup():
-    log_list = local('find . -name "*.log"', capture=True)
-    core_list = local('find . -name "core.*"', capture=True)
     path = 'backup-%s' % (max([-1] + map(int,
                                         list(item.replace('./backup-', '') 
                                              for item in 
                                              local('find . -name "backup-*"', 
                                                    capture=True)))) + 1)
     os.mkdir(path)
-    for name in log_list + core_list:
-        local('cp %s %s/' % (name, path))
-    print "RESULT IN %s" % path
+    for dir in local('ls | grep host', capture=True):
+        local('cp -R %s %s/' % (dir, path))
+    print "result in '%s'" % path
+
+@hosts('localhost')
+def backup_clean():
+    local('rm -rf backup-*')
 
 def ls():
     host = env.host
