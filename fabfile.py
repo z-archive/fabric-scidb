@@ -39,11 +39,11 @@ def clean():
 
 @hosts('localhost')
 def stop():
-    local("scidb.py stopall cheshire")
+    local("/opt/scidb/12.7/bin/scidb.py stopall cheshire")
 
 @hosts('localhost')
 def start():
-    local("scidb.py startall cheshire")
+    local("/opt/scidb/12.7/bin/scidb.py startall cheshire")
     local("sleep 10")
 
 @hosts('localhost')
