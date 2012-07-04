@@ -44,7 +44,7 @@ def stop():
 @hosts('localhost')
 def start():
     local("scidb.py startall cheshire")
-    local("sleep 5")
+    local("sleep 10")
 
 @hosts('localhost')
 def restart():
