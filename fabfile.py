@@ -112,7 +112,7 @@ def rebuild():
             local('cd %s && make clean' % path)
             local('cd %s && rm -f CMakeCache.txt' % path)            
             local('cd %s && CC="ccache gcc" CXX="ccache g++" cmake . -DCMAKE_BUILD_TYPE=Debug' % path)
-            local('cd %s && make -j3' % path)
+            local('cd %s && time make -j3' % path)
             sudo('cd %s && make install' % path)
         
 
